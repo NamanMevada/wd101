@@ -1,93 +1,108 @@
-function submitDetails(e) {
-    var form = document.getElementById("form");
-    var name = form.name.value;
-    var email = form.email.value;
-    var password = form.password.value;
-    var dob = form.dob.value;
-    var terms = form.terms.checked;
-    var age = calculateAge(dob);
-    if (age < 18 || age > 55) {
-        alert("You must be between 18 and 55 years old to register");
-        return false;
-    }
-    var vals = localStorage.getItem("data");
-    if (vals == null) {
-        vals = [];
-    } else {
-        vals = JSON.parse(vals);
-    }
-    vals.push({
-        name: name,
-        email: email,
-        password: password,
-        dob: dob,
-        terms: terms
-    });
-    localStorage.setItem("data", JSON.stringify(vals));
-    addRow(name, email, password, dob, terms);
-    form.name.value = "";
-    form.email.value = "";
-    form.password.value = "";
-    form.dob.value = "";
-    form.terms.checked = false;
-    return false;
-}
+$(document).ready(function() {
+    $('#contact_form').bootstrapValidator({
+        // To use feedback icons, ensure that you use Bootstrap v3.1.0 or later
+        feedbackIcons: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            first_name: {
+                validators: {
+                        stringLength: {
+                        min: 2,
+                    },
+                        notEmpty: {
+                        message: 'Please enter your First Name'
+                    }
+                }
+            },
+             last_name: {
+                validators: {
+                     stringLength: {
+                        min: 2,
+                    },
+                    notEmpty: {
+                        message: 'Please enter your Last Name'
+                    }
+                }
+            },
+			 user_name: {
+                validators: {
+                     stringLength: {
+                        min: 8,
+                    },
+                    notEmpty: {
+                        message: 'Please enter your Username'
+                    }
+                }
+            },
+			 user_password: {
+                validators: {
+                     stringLength: {
+                        min: 8,
+                    },
+                    notEmpty: {
+                        message: 'Please enter your Password'
+                    }
+                }
+            },
+			confirm_password: {
+                validators: {
+                     stringLength: {
+                        min: 8,
+                    },
+                    notEmpty: {
+                        message: 'Please confirm your Password'
+                    }
+                }
+            },
+            email: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please enter your Email Address'
+                    },
+                    emailAddress: {
+                        message: 'Please enter a valid Email Address'
+                    }
+                }
+            },
+            contact_no: {
+                validators: {
+                  stringLength: {
+                        min: 12, 
+                        max: 12,
+                    notEmpty: {
+                        message: 'Please enter your Contact No.'
+                     }
+                }
+            },
+			 department: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select your Department/Office'
+                    }
+                }
+            },
+                }
+            }
+        })
+        .on('success.form.bv', function(e) {
+            $('#success_message').slideDown({ opacity: "show" }, "slow") // Do something ...
+                $('#contact_form').data('bootstrapValidator').resetForm();
 
-function calculateAge(dob) {
-    var today = new Date();
-    var birthDate = new Date(dob);
-    var age = today.getFullYear() - birthDate.getFullYear();
-    var m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
-}
+            // Prevent form submission
+            e.preventDefault();
 
-function resetDetails() {
-    var confirm = window.confirm("Are you sure you want to reset the form?");
-    if (confirm) {
-        localStorage.clear();
-        var table_tbody = document.getElementById("table_tbody");
-        table_tbody.innerHTML = "";
-        var table = document.getElementById("table");
-        table.classList.add("hidden");
-        var nodata = document.getElementById("nodata");
-        nodata.classList.remove("hidden");
-        return true;
-    }
-}
+            // Get the form instance
+            var $form = $(e.target);
 
-function addRow(name, email, password, dob, terms) {
-    var nodata = document.getElementById("nodata");
-    var table = document.getElementById("table");
-    nodata.classList.add("hidden");
-    table.classList.remove("hidden");
-    var table = document.getElementById("table");
-    h = `<td class="px-4 py-3 text-sm font-medium text-gray-900 count"></td>
-        <td class="text-sm text-gray-900 font-light px-4 py-3">` + name + `</td>
-        <td class="text-sm text-gray-900 font-light px-4 py-3">` + email + `</td>
-        <td class="text-sm text-gray-900 font-light px-4 py-3">` + password + `</td>
-        <td class="text-sm text-gray-900 font-light px-4 py-3">` + dob + `</td>
-        <td class="text-sm text-gray-900 font-light px-4 py-3 mr-12">` + ((terms)?'✅':'❌') + `</td>`;
-    rowclass = "bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100";
-    var row = table.insertRow(-1);
-    row.className = rowclass;
-    row.innerHTML = h;
-}
+            // Get the BootstrapValidator instance
+            var bv = $form.data('bootstrapValidator');
 
-
-window.onload = function() {
-    var data = localStorage.getItem("data");
-    if (data != null) {
-        data = JSON.parse(data);
-        for (var i = 0; i < data.length; i++) {
-            addRow(data[i].name, data[i].email, data[i].password, data[i].dob, data[i].terms);
-        }
-    } else {
-        var nodata = document.getElementById("nodata");
-        var table = document.getElementById("table");
-        nodata.classList.remove("hidden");
-        table.classList.add("hidden");
-    }
-}
+            // Use Ajax to submit form data
+            $.post($form.attr('action'), $form.serialize(), function(result) {
+                console.log(result);
+            }, 'json');
+        });
+});
